@@ -70,7 +70,64 @@ class FeedForward(nn.Module):
             #(batch x Seq_len, d_model) -> (batch x seq_len, d_ff) -> (batch x seq_len x d_model)
             return self.linear_2(self.dropout(F.relu(self.linear_1(x))))
         
+class MultiHeadAttentionBlock(nn.Module):
+
+    # we do linear transformation to improve context understanding of different tokens in a sentence
+    # otherwise all the wo-rds will have the same represdentation. 
+    # we do multiple heads to chunk the data and transpose it for multiple proicessing such that each row referes to an individual head
+
+    def _init_(self, d_model:int, h:int, dropout: float):
+        super()._init_()
+
+        self.d_model = d_model
+        self.h = h 
+        assert d_model % h == 0 #d_model must be divisible by h
+
+        self.d_k = d_model // h 
+        self.w_q = nn.Linear(d_model, d_model)
+        self.w_k = nn.Linear(d_model, d_model)
+        self.w_v = nn.Linear(d_model, d_model)
+
+        self.w_o = nn.Linear(d_model, d_model)
+        self.dropout = nn.dropout(dropout)
+
+    @staticmethod
+    def attention(query, key, value, mask, dropout: nn.dropout):
+        d_k = query.shape[-1]
+
+
+       # (batch, h, seq_len, d_k) -> (batch x h, seq_len, d_k)
+
+        attention_scores = (query @ key.transpose(-2, -1)) / math.sqrt(d_k)
+        if mask is not None:
+            attention_scores = attention_scores.masked_fill(mask == 0, -1e9)
+
+        attention_scores = F.softmax(attention_scores, dim = -1) #(batch x h, seq_len, seq_len)
+        if dropout is not None:
+            attention_scores = dropout(attention_scores)
+
+        return (attention_scores @ value), attention_scores
+
+    def forward(self, q, k, v):
+        query = self.w_q(q) # Dimension (batch x seq_len x d_model) -> (batch, seq_length x d_model )
+        key = self.w_k(k)
+        value = self.w_v(v)
+
+        # (Batch, seq_len, d_model) ->(batch, seq_len, h, d_k) -> (batch, h , seq_len, d_k  )
+        query = query.view(query.shape[0], query.shape[1], self.h, self.d_k).transpose(1,2) # (batch x seq_len x d_model) -> (batch, seq_length x d_model )
+        key = query.view(query.shape[0], query.shape[1], self.h, self.d_k).transpose(1,2)
+        value = query.view(query.shape[0], query.shape[1], self.h, self.d_k).transpose(1,2)
+
+        x, self.attention_scores = MultiHeadAttentionBlock.attention(query, key, value, mask, self.dropout)
+
+
+        #(batch, h, seq_len, d_k) -> (batch x seq_len, h, d_k) -> (batch x seq_len x d_model)
+        x = x.transpose(1,2).contigous().view(x.shape[0], -1, self.h * self.d_k)
+
+        return self.w_o(x)
+
         
+
 
             
     
