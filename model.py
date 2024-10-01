@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class InputEmbedding(nn.module):
+class InputEmbedding(nn.Module):
 
     def _init_(self, d_model:int, vocab_size:int ):
         super()._init_()
@@ -45,7 +45,7 @@ class PositionalEncoding(nn.Module):
         x = x+ (self.pe[:, :x.shape[1], :]).requires_grad_(False)
         return self.dropout(x)
     
-class LayerNormnalization(nn.module):
+class LayerNormnalization(nn.Module):
         
     def _init_(self, eps:float = 10**-6 ) -> None:
         super()._init_()
@@ -92,7 +92,7 @@ class MultiHeadAttentionBlock(nn.Module):
         self.dropout = nn.dropout(dropout)
 
     @staticmethod
-    def attention(query, key, value, mask, dropout: nn.dropout):
+    def attention(query, key, value, mask, dropout: nn.Dropout):
         d_k = query.shape[-1]
 
 
@@ -148,14 +148,14 @@ class EncoderBlock(nn.Module):
         self.residual_connection = nn.ModukeList([ResidualConnection(dropout)for _ in range(2)])
 
     def forward(self, x, src_mask):
-        x = self.residual_connection[0(x, lambda x:self.self_attention_block(x,x,x, src_mask))]
+        x = self.residual_connection[0](x, lambda x:self.self_attention_block(x,x,x, src_mask))
         x = self.residual_connection[1](x, self.feed_forward_block)
         return x 
     
 
-class Encoder(nn.module):
+class Encoder(nn.Module):
 
-    def _init_(self, layers: nn.moduleList):
+    def _init_(self, layers: nn.ModuleList):
         super()._init_()
         self.layers = layers
         self.norm = LayerNormalization()
@@ -182,7 +182,7 @@ class DecoderBlock(nn.Module):
     
 class Decoder(nn.Module):
 
-    def _init_(self, layers: nn.moduleList):
+    def _init_(self, layers: nn.ModuleList):
         super()._init_()
         self.layers = layers
         self.norm = LayerNormalization()
@@ -203,7 +203,7 @@ class ProjectionLayer(nn.Module):
     def forward(self, x):
         return torch.log_softmax(self.proj(x), dim = -1)
     
-class Transformer(nn.module):
+class Transformer(nn.Module):
 
     def _init_(self, encoder:Encoder, decoder: Decoder, src_embed: InputEmbedding, tgt_embed: InputEmbedding, src_positional_encoding: PositionalEncoding, tgt_positional_encoding: PositionalEncoding, projection_layer: ProjectionLayer):
         super()._init_()
