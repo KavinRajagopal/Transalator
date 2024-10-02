@@ -20,6 +20,10 @@ class BilingualDataset(Dataset):
     def __len__(self):
         return len(self.ds)
     
+    def casual_mask(seq_len):
+        mask = torch.triu(torch.ones(seq_len, seq_len), diagonal = 1).type(torch.int)
+        return mask == 0
+    
     def __getitem__(self, idx: Any) -> Any:
         src_target_pair = self.ds[idx]
         src_text = src_target_pair['translation'][self.src_lang]
@@ -74,9 +78,13 @@ class BilingualDataset(Dataset):
             "decoder_input": decoder_input, #seq_len
             "encoder_mask": [encoder_input != self.pad_token].unsqueeze(0).unsqueeze(0).int(), #seq_len
             "decoder_mask": [decoder_input != self.pad_token ].unsqueeze(0).unsqueeze(0).int() & casual_mask(decoder_input.size(0)) #seq_len
+            "label": label
+
         }
     
     
+    
+
 
 
         
