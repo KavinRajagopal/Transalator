@@ -1,6 +1,6 @@
 # Transformerfromscrach
 
-This repository contains the implementation of a Transformer model from scratch. The code is organized into the following files:
+This repository contains the implementation of a Transformer model from scratch using PyTorch. The code is organized into the following files:
 
 ## dataset.py
 
