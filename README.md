@@ -1,6 +1,6 @@
-# Transformerfromscrach
+# Transalator
 
-This repository contains the implementation of a Transformer model from scratch using PyTorch. The code is organized into the following files:
+This repository contains the vanilla implementation of a Transformer architecture based on "attention is all you need" paper from scratch using PyTorch. The vanilla transformer is trained to perform a transalation task of the opus_books dataset available on hugging face. The code is organized into the following files:
 
 ## dataset.py
 
